@@ -51,6 +51,7 @@ dependencies:
   # Notifikasi peringatan (Pop-up/Heads-up notification)
   flutter_local_notifications: ^17.1.2
   flutter_overlay_window: ^0.5.0
+  fl_chart: ^1.2.0
 
   
 

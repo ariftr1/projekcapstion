@@ -4,10 +4,10 @@ import 'package:get/get.dart';
 import '../controllers/main_controller.dart';
 import '../../mode_guard/views/mode_guard_view.dart';
 
-
-// Import halaman-halaman anak
+// --- IMPORT HALAMAN ANAK ---
 import '../../home/views/home_view.dart';
-import '../../edukasi/views/edukasi_view.dart'; // 🔥 Import Halaman Edukasi
+import '../../analitik/views/analitik_view.dart'; // 🔥 REVISI: Impor Halaman Analitik Resmi
+import '../../edukasi/views/edukasi_view.dart'; 
 import '../../profil/views/profil_view.dart';
 
 class MainView extends GetView<MainController> {
@@ -20,17 +20,18 @@ class MainView extends GetView<MainController> {
       extendBody: true, 
       body: Stack(
         children: [
-        // 1. KONTEN HALAMAN (Layer Bawah)
+          // 1. KONTEN HALAMAN (Layer Bawah)
           Obx(() => IndexedStack(
                 index: controller.currentIndex.value,
                 children: const [
                   HomeView(),       // Index 0
-                  SizedBox(),       // Index 1 (Placeholder Analitik)
-                  ModeGuardView(),  // Index 2 (Sudah aman sekarang!)
+                  AnalitikView(),   // 🔥 REVISI: Wadah diisi AnalitikView (Bukan SizedBox lagi)
+                  ModeGuardView(),  // Index 2
                   EdukasiView(),    // Index 3 
                   ProfilView(),     // Index 4
                 ],
               )),
+              
           // 2. FLOATING NAVIGATOR "BEYOND" STYLE (Layer Atas)
           Align(
             alignment: Alignment.bottomCenter,
@@ -58,7 +59,6 @@ class MainView extends GetView<MainController> {
                             _buildNavItem(0, Icons.home_rounded, 'Home'),
                             _buildNavItem(1, Icons.analytics_outlined, 'Analitik'),
                             _buildNavItem(2, Icons.shield_moon_rounded, 'Guard'), 
-                            // Ubah ikon saran menjadi buku agar sesuai dengan konteks Edukasi
                             _buildNavItem(3, Icons.menu_book_rounded, 'Edukasi'), 
                             _buildNavItem(4, Icons.person_outline, 'Profil'),
                           ],

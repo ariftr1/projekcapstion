@@ -1,9 +1,14 @@
 import 'package:get/get.dart';
 
+import '../modules/about/bindings/about_binding.dart';
+import '../modules/about/views/about_view.dart';
+import '../modules/analitik/views/analitik_view.dart';
 import '../modules/edit_profil/bindings/edit_profil_binding.dart';
 import '../modules/edit_profil/views/edit_profil_view.dart';
 import '../modules/edukasi/bindings/edukasi_binding.dart';
 import '../modules/edukasi/views/edukasi_view.dart';
+import '../modules/faq/bindings/faq_binding.dart';
+import '../modules/faq/views/faq_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/login/bindings/login_binding.dart';
@@ -11,16 +16,19 @@ import '../modules/login/views/login_view.dart';
 import '../modules/main/bindings/main_binding.dart';
 import '../modules/main/views/main_view.dart';
 import '../modules/mode_guard/bindings/mode_guard_binding.dart';
+import '../modules/mode_guard/views/mode_guard_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../modules/privacy_policy/bindings/privacy_policy_binding.dart';
+import '../modules/privacy_policy/views/privacy_policy_view.dart';
 import '../modules/profil/bindings/profil_binding.dart';
 import '../modules/profil/views/profil_view.dart';
 import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
-import '../modules/mode_guard/views/mode_guard_view.dart';
 
+import '../modules/analitik/bindings/analitik_binding.dart'; // 🔥 IMPOR INI
 
 part 'app_routes.dart';
 
@@ -82,6 +90,26 @@ class AppPages {
       name: _Paths.EDUKASI,
       page: () => const EdukasiView(),
       binding: EdukasiBinding(),
+    ),
+    GetPage(
+      name: _Paths.ANALITIK,
+      page: () => const AnalitikView(),
+      binding: AnalitikBinding(),
+    ),
+    GetPage(
+      name: _Paths.ABOUT,
+      page: () => const AboutView(),
+      binding: AboutBinding(),
+    ),
+    GetPage(
+      name: _Paths.FAQ,
+      page: () => const FaqView(),
+      binding: FaqBinding(),
+    ),
+    GetPage(
+      name: _Paths.PRIVACY_POLICY,
+      page: () => const PrivacyPolicyView(),
+      binding: PrivacyPolicyBinding(),
     ),
   ];
 }

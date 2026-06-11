@@ -12,7 +12,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 // 🔥 Perhatikan tambahan 'with WidgetsBindingObserver' di sini
 class ModeGuardController extends GetxController with WidgetsBindingObserver {
-  final String baseUrl = 'http://192.168.18.7:5000';
+  final String baseUrl = 'http://192.168.57.45:5000';
   final box = GetStorage();
 
   // --- VARIABEL UNTUK UI ---
@@ -49,8 +49,9 @@ class ModeGuardController extends GetxController with WidgetsBindingObserver {
 
   void _initFaceDetector() {
     final options = FaceDetectorOptions(
-      enableClassification: true, 
-      performanceMode: FaceDetectorMode.fast, // 🔥 Mode Cepat
+      enableClassification: true, // Wajib untuk baca mata
+      performanceMode: FaceDetectorMode.fast, // Gunakan mode cepat agar tidak delay
+      // Hapus enableTracking agar RAM Poco Pad tidak terbagi
     );
     _faceDetector = FaceDetector(options: options);
   }
@@ -137,7 +138,7 @@ class ModeGuardController extends GetxController with WidgetsBindingObserver {
         Face face = faces.first;
 
       // 1. Hitung Jarak
-// 1. Deteksi otomatis posisi tablet (Portrait atau Landscape)
+      // 1. Deteksi otomatis posisi tablet (Portrait atau Landscape)
         bool isPortrait = Get.height > Get.width;
 
         // 2. Pilih Konstanta Ajaib berdasarkan posisi
@@ -154,16 +155,26 @@ class ModeGuardController extends GetxController with WidgetsBindingObserver {
         
         distanceValue.value = estimatedDistance;
 
+        // 2. Hitung Kedipan (Versi Kalibrasi)
         if (face.leftEyeOpenProbability != null && face.rightEyeOpenProbability != null) {
-          bool mataTertutup = face.leftEyeOpenProbability! < 0.4 && face.rightEyeOpenProbability! < 0.4;
+          
+          // 🔥 NYALAKAN PRINT INI SEMENTARA UNTUK MELIHAT ANGKA ASLI DI TERMINAL
+          print("👁️ Buka Mata -> Kiri: ${face.leftEyeOpenProbability!.toStringAsFixed(2)} | Kanan: ${face.rightEyeOpenProbability!.toStringAsFixed(2)}");
+
+          // Longgarkan threshold ke 0.6 (60% tertutup sudah dihitung kedip)
+          bool mataTertutup = face.leftEyeOpenProbability! < 0.6 && face.rightEyeOpenProbability! < 0.6;
+          
           if (mataTertutup) {
             if (!_isBlinkingState) {
               _jumlahKedipanMenitIni++; 
               _isBlinkingState = true;
+              print("✅ KEDIPAN MASUK! Total sementara: $_jumlahKedipanMenitIni");
             }
           } else {
             _isBlinkingState = false; 
           }
+        } else {
+          print("⚠️ AI Buta: Mata tidak terbaca oleh sensor");
         }
 
         int safeThreshold = box.read('safe_distance') ?? 35;
@@ -282,25 +293,35 @@ class ModeGuardController extends GetxController with WidgetsBindingObserver {
 
   // 🔥 FUNGSI SIKLUS HIDUP (Aplikasi di-minimize / dibuka kembali)
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (cameraController == null || !cameraController!.value.isInitialized) return;
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  final CameraController? cameraController = this.cameraController; // Ganti dengan nama variabel controllermu
 
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      if (isGuardActive.value) {
-        cameraController?.stopImageStream().catchError((e) => print("Aman: $e"));
-        print("⏸️ [LIFECYCLE] Aplikasi di-minimize, kamera diistirahatkan.");
-      }
-    } else if (state == AppLifecycleState.resumed) {
-      if (isGuardActive.value) {
-        print("▶️ [LIFECYCLE] Aplikasi dibuka kembali, menyalakan kamera...");
-        cameraController?.startImageStream((CameraImage image) {
-          if (isGuardActive.value && !_isProcessingFrame) {
-            _processCameraImage(image);
-          }
-        }).catchError((e) => print("Gagal resume stream: $e"));
-      }
-    }
+  // Jika kamera belum terinisialisasi, abaikan
+  if (cameraController == null || !cameraController.value.isInitialized) {
+    return;
   }
+
+  if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    // ⏸️ APLIKASI DI-MINIMIZE
+    print("⏸️ [LIFECYCLE] Aplikasi di-minimize, mematikan kamera sepenuhnya.");
+    
+    // 1. Hentikan stream jika sedang berjalan
+    if (cameraController.value.isStreamingImages) {
+      cameraController.stopImageStream();
+    }
+    
+    // 2. WAJIB: Dispose kamera agar memori di Android benar-benar bersih
+    cameraController.dispose();
+    
+  } else if (state == AppLifecycleState.resumed) {
+    // ▶️ APLIKASI DIBUKA KEMBALI
+    print("▶️ [LIFECYCLE] Aplikasi dibuka, inisialisasi ulang kamera...");
+    
+    // 3. Panggil ulang fungsi inisialisasi kamera dari awal
+    // Ganti 'initCamera()' dengan nama fungsi yang kamu pakai untuk menyalakan kamera pertama kali
+    initCamera(); 
+  }
+}
 
   // --- UTILITY & STOPWATCH LAYER ---
   void _initForegroundTask() {

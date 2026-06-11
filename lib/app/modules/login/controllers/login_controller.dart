@@ -16,7 +16,7 @@ class LoginController extends GetxController {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  final String baseUrl = 'http://192.168.18.7:5000';
+  final String baseUrl = 'http://192.168.57.45:5000';
 
   Future<void> loginWithGoogle() async {
     try {

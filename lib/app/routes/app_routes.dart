@@ -13,6 +13,10 @@ abstract class Routes {
   static const MODE_GUARD = _Paths.MODE_GUARD;
   static const MAIN = _Paths.MAIN;
   static const EDUKASI = _Paths.EDUKASI;
+  static const ANALITIK = _Paths.ANALITIK;
+  static const ABOUT = _Paths.ABOUT;
+  static const FAQ = _Paths.FAQ;
+  static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
 }
 
 abstract class _Paths {
@@ -27,4 +31,8 @@ abstract class _Paths {
   static const MODE_GUARD = '/mode-guard';
   static const MAIN = '/main';
   static const EDUKASI = '/edukasi';
+  static const ANALITIK = '/analitik';
+  static const ABOUT = '/about';
+  static const FAQ = '/faq';
+  static const PRIVACY_POLICY = '/privacy-policy';
 }
