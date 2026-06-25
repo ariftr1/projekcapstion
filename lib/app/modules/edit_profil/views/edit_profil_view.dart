@@ -13,8 +13,6 @@ class EditProfilView extends GetView<EditProfilController> {
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
             colors: [Color(0xFF2052D9), Color(0xFF0F8FEA)],
           ),
         ),
@@ -25,90 +23,86 @@ class EditProfilView extends GetView<EditProfilController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-
-                // 1. HEADER
                 Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-                    ),
+                    GestureDetector(onTap: () => Get.back(), child: const Icon(Icons.arrow_back, color: Colors.white, size: 28)),
                     const SizedBox(width: 16),
-                    const Text(
-                      'Edit Profil',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
+                    const Text('Edit Profil Dasar', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 ),
-
-                const SizedBox(height: 50),
-
-                // 2. INPUT USERNAME
-                _buildTextField(
-                  hint: 'Username',
-                  icon: Icons.person_outline,
-                  textController: controller.usernameController,
-                ),
-
-                const SizedBox(height: 20),
-
-                // 3. INPUT EMAIL
-                _buildTextField(
-                  hint: 'Email',
-                  icon: Icons.email_outlined,
-                  textController: controller.emailController,
-                ),
-
-                const SizedBox(height: 20),
-
-                // 4. INPUT PASSWORD SAAT INI (Dummy Visual)
-                Obx(() => _buildTextField(
-                  hint: 'Password saat ini (Belum Aktif)',
-                  icon: Icons.lock_outline,
-                  isPassword: true,
-                  obscureVal: controller.isObscureOld.value,
-                  onToggleObscure: controller.toggleOldPassword,
-                  textController: controller.oldPasswordController,
-                )),
-
-                const SizedBox(height: 20),
-
-                // 5. INPUT PASSWORD BARU (Dummy Visual)
-                Obx(() => _buildTextField(
-                  hint: 'Password baru (Belum Aktif)',
-                  icon: Icons.lock_outline,
-                  isPassword: true,
-                  obscureVal: controller.isObscureNew.value,
-                  onToggleObscure: controller.toggleNewPassword,
-                  textController: controller.newPasswordController,
-                )),
-
                 const SizedBox(height: 40),
-
-                // 6. TOMBOL SIMPAN
+                
+                _buildField(hint: 'Nama Lengkap', icon: Icons.person_outline, controller: controller.namaC),
+                const SizedBox(height: 20),
+                
+                // Input Tanggal Lahir dengan DatePicker Klik Otomatis
+// Input Tanggal Lahir dengan DatePicker Klik Otomatis
+                GestureDetector(
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now().subtract(const Duration(days: 7300)), // Default ke 20 tahun yang lalu
+                      firstDate: DateTime(1960),
+                      lastDate: DateTime.now(),
+                    );
+                    
+                    if (pickedDate != null) {
+                      // 1. Format teks tanggal ke textfield
+                      controller.tglLahirC.text = "${pickedDate.toLocal()}".split(' ')[0];
+                      
+                      // 🔥 2. PANGGIL FUNGSI HITUNG UMUR OTOMATIS DI SINI
+                      controller.hitungUmurOtomatis(pickedDate);
+                    }
+                  },
+                  child: AbsorbPointer(
+                    child: _buildField(hint: 'Tanggal Lahir (YYYY-MM-DD)', icon: Icons.calendar_today_outlined, controller: controller.tglLahirC),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                _buildField(hint: 'Umur', icon: Icons.cake_outlined, controller: controller.umurC, keyType: TextInputType.number),
+                const SizedBox(height: 20),
+                
+                // Dropdown Pekerjaan Glassmorphism
+                const Text("Status Pekerjaan", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(30),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: Obx(() => DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: controller.selectedPekerjaan.value,
+                      dropdownColor: const Color(0xFF2052D9),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      items: controller.opsiPekerjaan.map((String item) {
+                        return DropdownMenuItem<String>(value: item, child: Text(item));
+                      }).toList(),
+                      onChanged: (val) => controller.selectedPekerjaan.value = val!,
+                    ),
+                  )),
+                ),
+                
+                const SizedBox(height: 50),
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: Obx(() => OutlinedButton(
-                    onPressed: controller.isLoading.value ? null : () => controller.updateProfile(),
+                    onPressed: controller.isLoading.value ? null : () => controller.simpanProfilDasar(),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.white, width: 2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     ),
-                    child: controller.isLoading.value
-                        ? const SizedBox(
-                            height: 24, width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text(
-                            'Simpan Perubahan',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
+                    child: controller.isLoading.value 
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Simpan Data Dasar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   )),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -117,38 +111,14 @@ class EditProfilView extends GetView<EditProfilController> {
     );
   }
 
-  // WIDGET HELPER
-  Widget _buildTextField({
-    required String hint, 
-    required IconData icon, 
-    bool isPassword = false, 
-    TextEditingController? textController,
-    bool obscureVal = false,
-    VoidCallback? onToggleObscure,
-  }) {
+  Widget _buildField({required String hint, required IconData icon, required TextEditingController controller, TextInputType keyType = TextInputType.text}) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(30),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white, width: 1.5),
-      ),
+      decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white, width: 1.5)),
       child: TextField(
-        controller: textController,
-        obscureText: isPassword ? obscureVal : false,
+        controller: controller,
+        keyboardType: keyType,
         style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white70),
-          prefixIcon: Icon(icon, color: Colors.white),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(obscureVal ? Icons.visibility_off : Icons.visibility, color: Colors.white70),
-                  onPressed: onToggleObscure,
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
-        ),
+        decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.white70), prefixIcon: Icon(icon, color: Colors.white), border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15)),
       ),
     );
   }

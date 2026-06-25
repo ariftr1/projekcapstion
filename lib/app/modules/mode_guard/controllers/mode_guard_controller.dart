@@ -12,7 +12,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 // 🔥 Perhatikan tambahan 'with WidgetsBindingObserver' di sini
 class ModeGuardController extends GetxController with WidgetsBindingObserver {
-  final String baseUrl = 'http://192.168.57.45:5000';
+  final String baseUrl = 'http://172.20.10.13:5000';
   final box = GetStorage();
 
   // --- VARIABEL UNTUK UI ---
@@ -293,7 +293,7 @@ class ModeGuardController extends GetxController with WidgetsBindingObserver {
 
   // 🔥 FUNGSI SIKLUS HIDUP (Aplikasi di-minimize / dibuka kembali)
   @override
-void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
   final CameraController? cameraController = this.cameraController; // Ganti dengan nama variabel controllermu
 
   // Jika kamera belum terinisialisasi, abaikan
@@ -319,7 +319,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
     
     // 3. Panggil ulang fungsi inisialisasi kamera dari awal
     // Ganti 'initCamera()' dengan nama fungsi yang kamu pakai untuk menyalakan kamera pertama kali
-    initCamera(); 
+    _initCamera(); 
   }
 }
 

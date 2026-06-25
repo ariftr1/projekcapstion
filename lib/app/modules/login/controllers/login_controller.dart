@@ -6,6 +6,10 @@ import 'package:get_storage/get_storage.dart';
 import '../../../routes/app_pages.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+// 🔥 Tambahkan import ini agar bisa me-refresh UI secara instan
+import '../../profil/controllers/profil_controller.dart';
+import '../../home/controllers/home_controller.dart';
+
 class LoginController extends GetxController {
   var isPasswordHidden = true.obs;
   var isLoading = false.obs;
@@ -16,7 +20,7 @@ class LoginController extends GetxController {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  final String baseUrl = 'http://192.168.57.45:5000';
+  final String baseUrl = 'http://172.20.10.13:5000';
 
   Future<void> loginWithGoogle() async {
     try {
@@ -58,11 +62,26 @@ class LoginController extends GetxController {
       if (response.statusCode == 200) {
         if (data['status'] == 'success') {
           final box = GetStorage();
-          box.write('userId', data['user_id']);
-          box.write('userName', data['nama']);
-          box.write('userEmail', data['email']);
+          
+          // 🔥 PERBAIKAN FATAL: Paksa userId menjadi String agar tidak bentrok dengan JWT Flask
+          box.write('userId', data['user_id'].toString());
+          
+          box.write('nama', data['nama']); 
+          box.write('email', data['email']); 
           box.write('token', data['token']); 
           box.write('login_method', 'google'); 
+          
+          box.write('tanggal_lahir', data['tanggal_lahir'] ?? '');
+          box.write('umur', data['umur'] ?? 0);
+          box.write('pekerjaan', data['pekerjaan'] ?? '');
+          box.write('status_kacamata', data['status_kacamata'] ?? false);
+          box.write('lama_berkacamata', data['lama_berkacamata'] ?? '');
+          box.write('sph', data['sph'] ?? 0.0);
+          box.write('cyl', data['cyl'] ?? 0.0);
+
+          // 🔥 Paksa Refresh UI Profil & Home
+          if (Get.isRegistered<ProfilController>()) Get.find<ProfilController>().loadUserData();
+          if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadHomeData();
 
           Get.snackbar("Sukses", "Berhasil masuk dengan Google!", backgroundColor: Colors.green, colorText: Colors.white);
           Get.offAllNamed(Routes.MAIN); 
@@ -167,7 +186,6 @@ class LoginController extends GetxController {
   Future<void> _prosesRegisterGoogle(String nama, String email, String password) async {
     isLoading.value = true;
     try {
-      // 🔥 PERUBAHAN: localhost diganti menjadi $baseUrl
       var urlRegister = Uri.parse('$baseUrl/api/register');
       var responseRegister = await http.post(
         urlRegister,
@@ -204,7 +222,6 @@ class LoginController extends GetxController {
     isLoading.value = true;
 
     try {
-      // 🔥 PERUBAHAN: localhost diganti menjadi $baseUrl
       var url = Uri.parse('$baseUrl/api/login');
       var response = await http.post(
         url,
@@ -216,11 +233,29 @@ class LoginController extends GetxController {
 
       if (response.statusCode == 200 && data['status'] == 'success') {
         final box = GetStorage();
-        box.write('userId', data['user_id']);
-        box.write('userName', data['nama']);
-        box.write('userEmail', data['email']);
+        
+        // 🔥 PERBAIKAN FATAL: Paksa userId menjadi String di login manual juga!
+        box.write('userId', data['user_id'].toString());
+        
+        // Kunci lama 'userName'/'userEmail' diubah jadi 'nama'/'email'
+        box.write('nama', data['nama']);
+        box.write('email', data['email']);
+        
         box.write('token', data['token']); 
         box.write('login_method', 'email'); 
+
+        // Simpan semua data medis dari database ke lokal
+        box.write('tanggal_lahir', data['tanggal_lahir'] ?? '');
+        box.write('umur', data['umur'] ?? 0);
+        box.write('pekerjaan', data['pekerjaan'] ?? '');
+        box.write('status_kacamata', data['status_kacamata'] ?? false);
+        box.write('lama_berkacamata', data['lama_berkacamata'] ?? '');
+        box.write('sph', data['sph'] ?? 0.0);
+        box.write('cyl', data['cyl'] ?? 0.0);
+
+        // Senggol memori Controller UI agar tidak nunggu direstart
+        if (Get.isRegistered<ProfilController>()) Get.find<ProfilController>().loadUserData();
+        if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadHomeData();
 
         Get.snackbar("Sukses", "Selamat datang, ${data['nama']}!", backgroundColor: Colors.green, colorText: Colors.white);
         Get.offAllNamed(Routes.MAIN); 

@@ -1,15 +1,18 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../routes/app_pages.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // 🔥 Tambahkan ini untuk Logout Google
 
 class ProfilController extends GetxController {
   final box = GetStorage();
 
-  // Variabel reaktif untuk menyimpan data profil (Tanpa hardcode)
+  // 🔥 VARIABEL OBSERVABLE YANG SINKRON DENGAN VIEW
   var userName = "Memuat...".obs; 
   var userEmail = "memuat...".obs;
   var userInitials = "-".obs;
+  
+  var umur = "-".obs;
+  var sph = "0.00".obs;
+  var cyl = "0.00".obs;
 
   @override
   void onInit() {
@@ -18,43 +21,37 @@ class ProfilController extends GetxController {
   }
 
   void loadUserData() {
-    // 🔥 Jika kosong, tampilkan peringatan "Data Kosong", bukan "Nanda"
-    String name = box.read('userName') ?? "Data Kosong";
-    String email = box.read('userEmail') ?? "Email Kosong";
+    // 🔥 Membaca dari laci 'nama' dan 'email' (Hasil set dari Login/Google Login)
+    String name = box.read('nama') ?? "Data Kosong";
+    String email = box.read('email') ?? "Email Kosong";
 
+    // Masukkan ke variabel reaktif
     userName.value = name;
     userEmail.value = email;
     userInitials.value = _generateInitials(name);
+    
+    // Membaca data medis
+    var rawUmur = box.read('umur');
+    var rawSph = box.read('sph');
+    var rawCyl = box.read('cyl');
+
+    umur.value = (rawUmur == null || rawUmur == 0 || rawUmur.toString() == "0") ? "-" : rawUmur.toString();
+    sph.value = (rawSph == null || rawSph == 0.0 || rawSph.toString() == "0") ? "0.00" : rawSph.toString();
+    cyl.value = (rawCyl == null || rawCyl == 0.0 || rawCyl.toString() == "0") ? "0.00" : rawCyl.toString();
   }
 
   String _generateInitials(String name) {
-    if (name == "Data Kosong") return "??";
-    
+    if (name == "Data Kosong" || name.trim().isEmpty) return "??";
     List<String> nameParts = name.trim().split(' ');
     if (nameParts.isEmpty || nameParts[0].isEmpty) return "US";
-    
-    if (nameParts.length == 1) {
-      return nameParts[0].substring(0, nameParts[0].length > 1 ? 2 : 1).toUpperCase();
-    }
+    if (nameParts.length == 1) return nameParts[0].substring(0, nameParts[0].length > 1 ? 2 : 1).toUpperCase();
     return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
   }
 
-  Future<void> logout() async {
-    // 1. Hapus semua data dari memori internal Poco Pad
-    box.remove('userName');
-    box.remove('userEmail');
-    box.remove('userId');
-    box.remove('token'); 
-    box.remove('login_method');
-    
-    // 2. 🔥 Paksa putus sesi dari Google Sign-In
-    try {
-      await GoogleSignIn().signOut();
-    } catch (e) {
-      print("Gagal sign out dari Google: $e");
-    }
-    
-    // 3. Lempar kembali ke halaman Login
-    Get.offAllNamed(Routes.LOGIN);
+// Contoh fungsi Logout yang benar di Controller Profil/Settings kamu:
+  void logout() async {
+    final box = GetStorage();
+    await box.erase(); // 🔥 INI WAJIB! Menghapus ID 9, token, dll dari memori HP
+    Get.offAllNamed(Routes.LOGIN); // Lempar ke halaman login
   }
 }

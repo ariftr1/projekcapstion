@@ -17,6 +17,8 @@ abstract class Routes {
   static const ABOUT = _Paths.ABOUT;
   static const FAQ = _Paths.FAQ;
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
+  static const RIWAYAT_MEDIS = _Paths.RIWAYAT_MEDIS;
+  static const TENTANG_AKUN = _Paths.TENTANG_AKUN;
 }
 
 abstract class _Paths {
@@ -35,4 +37,6 @@ abstract class _Paths {
   static const ABOUT = '/about';
   static const FAQ = '/faq';
   static const PRIVACY_POLICY = '/privacy-policy';
+  static const RIWAYAT_MEDIS = '/riwayat-medis';
+  static const TENTANG_AKUN = '/tentang-akun';
 }

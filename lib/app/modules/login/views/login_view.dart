@@ -14,6 +14,7 @@ class LoginView extends GetView<LoginController> {
         child: Column(
           children: [
             // 1. HEADER DENGAN LENGKUNGAN GELOMBANG (WAVE)
+            // 1. HEADER DENGAN LENGKUNGAN GELOMBANG (WAVE)
             ClipPath(
               clipper: WaveClipper(),
               child: Container(
@@ -23,29 +24,26 @@ class LoginView extends GetView<LoginController> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    // Menggabungkan biru MyoGuard dengan sedikit ungu agar mirip referensi
-                    colors: [Color(0xFF2052D9), Color(0xFF6A11CB)], 
+                    colors: [Color.fromARGB(255, 85, 125, 235), Color.fromARGB(255, 3, 202, 169)], 
                   ),
                 ),
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Ikon/Logo MyoGuard
+                      // 🔥 KODE LOGO YANG DIPERBAIKI
                       Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
+                        // Hapus padding berlebih agar logo bisa lebih besar tanpa terpotong
+                        padding: const EdgeInsets.symmetric(horizontal: 20), 
+                        child: Image.asset(
+                          'assets/images/logo1.png', 
+                          width: 190,  // Lebar ideal, tidak terlalu raksasa
+                          // Hapus parameter 'height' agar aspek rasionya natural (tidak gepeng/pecah)
+                          fit: BoxFit.contain, 
                         ),
-                        child: const Icon(Icons.remove_red_eye, color: Colors.white, size: 50),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'MYOGUARD',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2),
-                      ),
-                      const SizedBox(height: 30), // Spasi sebelum area potongan
+                      // Kurangi spasi bawah agar tidak nabrak lengkungan putih
+                      const SizedBox(height: 15), 
                     ],
                   ),
                 ),
@@ -53,6 +51,8 @@ class LoginView extends GetView<LoginController> {
             ),
 
             const SizedBox(height: 10),
+            
+            // ... (lanjutan kode form email dan password kamu di bawah sini) ...
 
             // 2. KONTEN FORM
             Padding(

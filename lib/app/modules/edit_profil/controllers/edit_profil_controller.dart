@@ -3,92 +3,103 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../profil/controllers/profil_controller.dart'; 
+import '../../profil/controllers/profil_controller.dart';
 
 class EditProfilController extends GetxController {
   var isLoading = false.obs;
-  var isObscureOld = true.obs;
-  var isObscureNew = true.obs;
-
-  final usernameController = TextEditingController();
-  final emailController = TextEditingController();
-  final oldPasswordController = TextEditingController();
-  final newPasswordController = TextEditingController();
-
   final box = GetStorage();
+
+  final namaC = TextEditingController();
+  final tglLahirC = TextEditingController();
+  final umurC = TextEditingController(); // Controller ini akan terisi otomatis
+  
+  var selectedPekerjaan = "Mahasiswa".obs;
+  final List<String> opsiPekerjaan = ["Mahasiswa", "Karyawan", "PNS", "Freelance", "Pelajar", "Lainnya"];
 
   @override
   void onInit() {
     super.onInit();
-    // Semua user diperlakukan sama
-    usernameController.text = box.read('userName') ?? '';
-    emailController.text = box.read('userEmail') ?? '';
+    namaC.text = box.read('nama') ?? '';
+    tglLahirC.text = box.read('tanggal_lahir') ?? '';
+    
+    var savedUmur = box.read('umur');
+    umurC.text = (savedUmur == null || savedUmur == 0) ? '' : savedUmur.toString();
+    
+    // 🔥 SINKRONISASI DROPDOWN (Mencegah Layar Merah Asersi):
+    String? pekerjaanSaved = box.read('pekerjaan');
+    
+    if (pekerjaanSaved == null || pekerjaanSaved.trim().isEmpty || !opsiPekerjaan.contains(pekerjaanSaved)) {
+      selectedPekerjaan.value = "Mahasiswa"; // Kembalikan ke opsi default jika kosong
+    } else {
+      selectedPekerjaan.value = pekerjaanSaved;
+    }
   }
 
-  void toggleOldPassword() => isObscureOld.value = !isObscureOld.value;
-  void toggleNewPassword() => isObscureNew.value = !isObscureNew.value;
+  // 🔥 FUNGSI: Menghitung umur secara otomatis berdasarkan DateTime Pilihan
+  void hitungUmurOtomatis(DateTime tanggalLahir) {
+    DateTime hariIni = DateTime.now();
+    int umur = hariIni.year - tanggalLahir.year;
 
-  Future<void> updateProfile() async {
-    String newName = usernameController.text.trim();
-    String newEmail = emailController.text.trim();
-    String oldPass = oldPasswordController.text.trim(); 
-    String newPass = newPasswordController.text.trim(); 
+    // Koreksi jika bulan/tanggal hari ini belum melewati hari ulang tahunnya
+    if (hariIni.month < tanggalLahir.month || 
+       (hariIni.month == tanggalLahir.month && hariIni.day < tanggalLahir.day)) {
+      umur--;
+    }
 
-    if (newName.isEmpty || newEmail.isEmpty) {
-      Get.snackbar("Peringatan", "Username dan Email tidak boleh kosong",
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
+    // Masukkan hasil hitungan ke dalam TextField Umur secara instan
+    umurC.text = umur.toString();
+  }
+
+  Future<void> simpanProfilDasar() async {
+    if (namaC.text.trim().isEmpty) {
+      Get.snackbar("Gagal", "Nama lengkap wajib diisi!", backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
-
+    
     isLoading.value = true;
-
     try {
-      var url = Uri.parse('http://192.168.18.7:5000/api/update-profile');
-      String? token = box.read('token');
-
-      if (token == null || token.isEmpty) {
-        Get.snackbar("Error", "Sesi tidak valid, silakan logout dan login ulang.",
-            backgroundColor: Colors.redAccent, colorText: Colors.white);
-        isLoading.value = false;
-        return;
-      }
-
       var response = await http.put(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token"
-        },
+        // 🔥 PERBAIKAN IP ADDRESS: Mengubah .6 menjadi .7
+        Uri.parse('http://172.20.10.13:5000/api/update-profil-dasar'),
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${box.read('token')}"},
         body: jsonEncode({
-          "nama": newName,
-          "email": newEmail,
-          "password_lama": oldPass.isNotEmpty ? oldPass : null, 
-          "password_baru": newPass.isNotEmpty ? newPass : null, 
+          "nama": namaC.text.trim(),
+          "tanggal_lahir": tglLahirC.text.isEmpty ? null : tglLahirC.text,
+          "umur": int.tryParse(umurC.text) ?? 0,
+          "pekerjaan": selectedPekerjaan.value
         }),
       );
-
-      var data = jsonDecode(response.body);
-
+      
       if (response.statusCode == 200) {
-        box.write('userName', newName);
-        box.write('userEmail', newEmail);
+        box.write('nama', namaC.text.trim());
+        box.write('tanggal_lahir', tglLahirC.text);
+        box.write('umur', int.tryParse(umurC.text) ?? 0);
+        box.write('pekerjaan', selectedPekerjaan.value);
 
-        if (Get.isRegistered<ProfilController>()) {
-          Get.find<ProfilController>().loadUserData();
-        }
-
-        Get.back(); 
-        Get.snackbar("Sukses", "Profil berhasil diperbarui!",
-            backgroundColor: Colors.green, colorText: Colors.white);
+        // Memaksa halaman Profil utama memperbarui tampilannya secara realtime
+        if (Get.isRegistered<ProfilController>()) Get.find<ProfilController>().loadUserData();
+        
+        Get.back();
+        Get.snackbar("Sukses", "Profil dasar berhasil disimpan!", backgroundColor: Colors.green, colorText: Colors.white);
       } else {
-        Get.snackbar("Gagal", data['error'] ?? "Terjadi kesalahan",
-            backgroundColor: Colors.redAccent, colorText: Colors.white);
-        isLoading.value = false;
+        // 🔥 Tambahan: Beri tahu jika errornya dari backend Flask
+        Get.snackbar("Gagal", "Gagal menyimpan. Kode: ${response.statusCode}", backgroundColor: Colors.orange, colorText: Colors.white);
+        print("Response body error: ${response.body}");
       }
     } catch (e) {
-      Get.snackbar("Error", "Tidak dapat terhubung ke server",
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
-      isLoading.value = false;
+      // 🔥 Memunculkan eror di terminal agar gampang dilacak
+      print("Error Update Profil: $e"); 
+      Get.snackbar("Error", "Gagal terhubung ke server", backgroundColor: Colors.redAccent, colorText: Colors.white);
+    } finally { 
+      isLoading.value = false; 
     }
+  }
+
+  @override
+  void onClose() {
+    namaC.dispose();
+    tglLahirC.dispose();
+    umurC.dispose();
+    super.onClose();
   }
 }

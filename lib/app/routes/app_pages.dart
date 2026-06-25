@@ -25,8 +25,12 @@ import '../modules/profil/bindings/profil_binding.dart';
 import '../modules/profil/views/profil_view.dart';
 import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_view.dart';
+import '../modules/riwayat_medis/bindings/riwayat_medis_binding.dart';
+import '../modules/riwayat_medis/views/riwayat_medis_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
+import '../modules/tentang_akun/bindings/tentang_akun_binding.dart';
+import '../modules/tentang_akun/views/tentang_akun_view.dart';
 
 import '../modules/analitik/bindings/analitik_binding.dart'; // 🔥 IMPOR INI
 
@@ -110,6 +114,16 @@ class AppPages {
       name: _Paths.PRIVACY_POLICY,
       page: () => const PrivacyPolicyView(),
       binding: PrivacyPolicyBinding(),
+    ),
+    GetPage(
+      name: _Paths.RIWAYAT_MEDIS,
+      page: () => const RiwayatMedisView(),
+      binding: RiwayatMedisBinding(),
+    ),
+    GetPage(
+      name: _Paths.TENTANG_AKUN,
+      page: () => const TentangAkunView(),
+      binding: TentangAkunBinding(),
     ),
   ];
 }

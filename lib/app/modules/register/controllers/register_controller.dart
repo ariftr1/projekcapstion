@@ -5,8 +5,8 @@ import 'dart:convert';
 import '../../../routes/app_pages.dart';
 import 'package:get_storage/get_storage.dart'; 
 import 'package:google_sign_in/google_sign_in.dart'; 
-
-
+import '../../profil/controllers/profil_controller.dart'; 
+import '../../home/controllers/home_controller.dart'; // 🔥 Pastikan import ini ada
 
 class RegisterController extends GetxController {
   var isPasswordHidden = true.obs;
@@ -16,17 +16,19 @@ class RegisterController extends GetxController {
   final passwordController = TextEditingController();
   final usernameController = TextEditingController();
   
+  final String baseUrl = 'http://172.20.10.13:5000';
+  final box = GetStorage();
+
+  // Mesin Google MyoGuard
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: '188183375956-3ldudapu86m3q027ls65uc8cen8uigj6.apps.googleusercontent.com',
+  );
 
   void togglePasswordView() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
-  final String baseUrl = 'http://192.168.18.7:5000';
-  // Mesin Google MyoGuard
-      final GoogleSignIn _googleSignIn = GoogleSignIn(
-          clientId: '188183375956-3ldudapu86m3q027ls65uc8cen8uigj6.apps.googleusercontent.com',
-        );
 
-Future<void> loginWithGoogle() async {
+  Future<void> loginWithGoogle() async {
     try {
       isLoading.value = true;
       
@@ -58,20 +60,44 @@ Future<void> loginWithGoogle() async {
       if (response.statusCode == 200) {
         // KONDISI A: Akun sudah terdaftar sebelumnya di MySQL
         if (data['status'] == 'success') {
-          final box = GetStorage();
           box.write('userId', data['user_id']);
-          box.write('userName', data['nama']);
-          box.write('userEmail', data['email']);
+          box.write('nama', data['nama']);
+          box.write('email', data['email']);
           box.write('token', data['token'] ?? 'google_auth_token'); 
+          box.write('login_method', 'google');
+
+          // Masukkan data dari database
+          box.write('tanggal_lahir', data['tanggal_lahir'] ?? '');
+          box.write('umur', data['umur'] ?? 0);
+          box.write('pekerjaan', data['pekerjaan'] ?? '');
+          box.write('status_kacamata', data['status_kacamata'] ?? false);
+          box.write('lama_berkacamata', data['lama_berkacamata'] ?? '');
+          box.write('sph', data['sph'] ?? 0.0);
+          box.write('cyl', data['cyl'] ?? 0.0);
+
+          // Pasang pemicu refresh data ProfilView utama secara realtime
+          if (Get.isRegistered<ProfilController>()) {
+            Get.find<ProfilController>().loadUserData();
+          } else {
+            final profilController = Get.put(ProfilController());
+            profilController.loadUserData();
+          }
+
+          // Pasang pemicu refresh sapaan nama di Beranda secara realtime
+          if (Get.isRegistered<HomeController>()) {
+            Get.find<HomeController>().loadHomeData();
+          } else {
+            final homeController = Get.put(HomeController());
+            homeController.loadHomeData();
+          }
 
           Get.snackbar("Sukses", "Akun sudah terdaftar, otomatis masuk!",
               backgroundColor: Colors.green, colorText: Colors.white);
           
           Get.offAllNamed(Routes.MAIN); 
         } 
-        // KONDISI B: Akun benar-benar baru (Sesuai respon Flask kamu)
+        // KONDISI B: Akun benar-benar baru via Google
         else if (data['status'] == 'needs_password') {
-          // Opsi 1: Masukkan data ke form register manual secara otomatis agar user tinggal isi password
           usernameController.text = data['nama'];
           emailController.text = data['email'];
           
@@ -80,7 +106,7 @@ Future<void> loginWithGoogle() async {
             "Email Google berhasil diverifikasi. Silakan masukkan password untuk menyelesaikan pendaftaran MyoGuard.",
             backgroundColor: Colors.blueAccent, 
             colorText: Colors.white,
-            duration: Duration(seconds: 5)
+            duration: const Duration(seconds: 5)
           );
         }
       } else {
@@ -125,11 +151,37 @@ Future<void> loginWithGoogle() async {
       var data = jsonDecode(response.body);
 
       if (response.statusCode == 201) {
-        final box = GetStorage();
-        box.write('userName', username);
-        box.write('userEmail', email);
+        // Simpan data pendaftaran ke memori local perangkat
+        box.write('nama', username);
+        box.write('email', email);
         box.write('userId', data['user_id']);
+        box.write('login_method', 'email');
         
+        // Pasang data default kosong sejak awal registrasi sukses
+        box.write('tanggal_lahir', '');
+        box.write('umur', 0);
+        box.write('pekerjaan', '');
+        box.write('status_kacamata', false);
+        box.write('lama_berkacamata', '');
+        box.write('sph', 0.0);
+        box.write('cyl', 0.0);
+
+        // Paksa halaman Profil utama untuk memuat ulang datanya
+        if (Get.isRegistered<ProfilController>()) {
+          Get.find<ProfilController>().loadUserData();
+        } else {
+          final profilController = Get.put(ProfilController());
+          profilController.loadUserData();
+        }
+
+        // Paksa sapaan Beranda untuk memuat data nama reaktif yang baru dibuat
+        if (Get.isRegistered<HomeController>()) {
+          Get.find<HomeController>().loadHomeData();
+        } else {
+          final homeController = Get.put(HomeController());
+          homeController.loadHomeData();
+        }
+
         Get.snackbar("Sukses", "${data['message'] ?? 'User berhasil terdaftar'}!",
             backgroundColor: Colors.green, colorText: Colors.white);
         
@@ -137,17 +189,20 @@ Future<void> loginWithGoogle() async {
       } else {
         Get.snackbar("Gagal", data['error'] ?? "Gagal mendaftarkan akun",
             backgroundColor: Colors.redAccent, colorText: Colors.white);
-        isLoading.value = false; 
       }
     } catch (e) {
       Get.snackbar("Error", "Tidak dapat terhubung ke backend Flask",
           backgroundColor: Colors.redAccent, colorText: Colors.white);
+    } finally {
       isLoading.value = false; 
-    } 
+    }
   }
 
   @override
   void onClose() {
+    emailController.dispose();
+    passwordController.dispose();
+    usernameController.dispose();
     super.onClose();
   }
 }
