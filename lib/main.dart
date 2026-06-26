@@ -5,29 +5,17 @@ import 'app/routes/app_pages.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 void main() async {
+  // 1. Pastikan inisialisasi sistem siap
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 2. Inisialisasi GetStorage
   await GetStorage.init(); 
-  
-  final box = GetStorage();
-  
-  // Cek riwayat user
-  bool sudahOnboarding = box.read('sudah_onboarding') ?? false;
-  String? token = box.read('token');
-
-  // Logika Rute Awal
-  String ruteAwal;
-  if (sudahOnboarding == false) {
-    ruteAwal = Routes.ONBOARDING;
-  } else if (token != null && token.isNotEmpty) {
-    ruteAwal = Routes.MAIN;
-  } else {
-    ruteAwal = Routes.LOGIN;
-  }
 
   runApp(
     GetMaterialApp(
       title: "MyoGuard",
-      initialRoute: ruteAwal,
+      // 🔥 PAKSA MULAI DARI SPLASH agar muncul 6 detik
+      initialRoute: Routes.SPLASH, 
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
     ),
@@ -38,12 +26,10 @@ void main() async {
 // 🔥 KODE KHUSUS UNTUK CINCIN MELAYANG (FLOATING OVERLAY) 🔥
 // =========================================================================
 
-// 1. Entry point khusus (Portal agar Flutter bisa menggambar di luar aplikasi)
+// Entry point untuk Overlay (Terpisah dari Main App)
 @pragma("vm:entry-point")
 void overlayMain() {
-  // Pastikan binding internal Android siap
   WidgetsFlutterBinding.ensureInitialized();
-  
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -59,31 +45,34 @@ class MyoGuardOverlayUI extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Background wajib transparan agar tidak menutupi layar Poco Pad
       backgroundColor: Colors.transparent, 
       body: Center(
-        child: Container(
-          width: 65,
-          height: 65,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.black87, // Warna dasar cincin
-            border: Border.all(
-              color: Colors.greenAccent, // Garis cincin
-              width: 3.5,
+        child: GestureDetector(
+          onTap: () {
+            // 🔥 SOLUSI AMAN: Gunakan print() saja. 
+            // Ini tidak akan pernah menyebabkan error 'undefined_method'.
+            print("Cincin diklik!");
+          },
+          child: Container(
+            width: 65,
+            height: 65,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black87,
+              border: Border.all(color: Colors.greenAccent, width: 3.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.greenAccent.withOpacity(0.5),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.greenAccent.withOpacity(0.5),
-                blurRadius: 15,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.remove_red_eye_rounded,
-            color: Colors.white,
-            size: 32,
+            child: const Icon(
+              Icons.remove_red_eye_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
         ),
       ),

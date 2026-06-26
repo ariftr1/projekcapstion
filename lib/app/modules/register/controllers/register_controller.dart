@@ -16,7 +16,7 @@ class RegisterController extends GetxController {
   final passwordController = TextEditingController();
   final usernameController = TextEditingController();
   
-  final String baseUrl = 'http://172.20.10.13:5000';
+  final String baseUrl = 'http://192.168.18.20:5000';
   final box = GetStorage();
 
   // Mesin Google MyoGuard

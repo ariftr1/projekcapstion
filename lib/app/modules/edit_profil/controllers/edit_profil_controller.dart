@@ -11,10 +11,14 @@ class EditProfilController extends GetxController {
 
   final namaC = TextEditingController();
   final tglLahirC = TextEditingController();
-  final umurC = TextEditingController(); // Controller ini akan terisi otomatis
+  final umurC = TextEditingController(); 
   
   var selectedPekerjaan = "Mahasiswa".obs;
   final List<String> opsiPekerjaan = ["Mahasiswa", "Karyawan", "PNS", "Freelance", "Pelajar", "Lainnya"];
+
+  // 🔥 PERBAIKAN 1: Pisahkan Base URL agar mudah diganti dan dibaca. 
+  // Pastikan tidak ada spasi di dalam string ini.
+  final String baseUrl = "http://172.20.10.13:5000";
 
   @override
   void onInit() {
@@ -25,43 +29,53 @@ class EditProfilController extends GetxController {
     var savedUmur = box.read('umur');
     umurC.text = (savedUmur == null || savedUmur == 0) ? '' : savedUmur.toString();
     
-    // 🔥 SINKRONISASI DROPDOWN (Mencegah Layar Merah Asersi):
+    // Mencegah layar merah/error asersi jika data kosong
     String? pekerjaanSaved = box.read('pekerjaan');
-    
     if (pekerjaanSaved == null || pekerjaanSaved.trim().isEmpty || !opsiPekerjaan.contains(pekerjaanSaved)) {
-      selectedPekerjaan.value = "Mahasiswa"; // Kembalikan ke opsi default jika kosong
+      selectedPekerjaan.value = "Mahasiswa"; 
     } else {
       selectedPekerjaan.value = pekerjaanSaved;
     }
   }
 
-  // 🔥 FUNGSI: Menghitung umur secara otomatis berdasarkan DateTime Pilihan
+  // Menghitung umur secara otomatis berdasarkan DateTime Pilihan
   void hitungUmurOtomatis(DateTime tanggalLahir) {
     DateTime hariIni = DateTime.now();
     int umur = hariIni.year - tanggalLahir.year;
 
-    // Koreksi jika bulan/tanggal hari ini belum melewati hari ulang tahunnya
     if (hariIni.month < tanggalLahir.month || 
        (hariIni.month == tanggalLahir.month && hariIni.day < tanggalLahir.day)) {
       umur--;
     }
 
-    // Masukkan hasil hitungan ke dalam TextField Umur secara instan
     umurC.text = umur.toString();
   }
 
   Future<void> simpanProfilDasar() async {
     if (namaC.text.trim().isEmpty) {
-      Get.snackbar("Gagal", "Nama lengkap wajib diisi!", backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar("Peringatan", "Nama lengkap wajib diisi!", backgroundColor: Colors.orange, colorText: Colors.white);
       return;
     }
     
     isLoading.value = true;
     try {
+      // 🔥 PERBAIKAN 2: Validasi keberadaan Token sebelum nembak API
+      String token = box.read('token') ?? '';
+      if (token.isEmpty) {
+        Get.snackbar("Error", "Sesi login tidak valid. Silakan login ulang.", backgroundColor: Colors.redAccent, colorText: Colors.white);
+        isLoading.value = false;
+        return;
+      }
+
+      // 🔥 PERBAIKAN 3: Menggunakan .trim() pada URL untuk memastikan tidak ada spasi (%20)
+      var url = Uri.parse('$baseUrl/api/update-profil-dasar'.trim());
+      
       var response = await http.put(
-        // 🔥 PERBAIKAN IP ADDRESS: Mengubah .6 menjadi .7
-        Uri.parse('http://172.20.10.13:5000/api/update-profil-dasar'),
-        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${box.read('token')}"},
+        url,
+        headers: {
+          "Content-Type": "application/json", 
+          "Authorization": "Bearer $token"
+        },
         body: jsonEncode({
           "nama": namaC.text.trim(),
           "tanggal_lahir": tglLahirC.text.isEmpty ? null : tglLahirC.text,
@@ -71,25 +85,35 @@ class EditProfilController extends GetxController {
       );
       
       if (response.statusCode == 200) {
+        // Simpan ke local storage
         box.write('nama', namaC.text.trim());
         box.write('tanggal_lahir', tglLahirC.text);
         box.write('umur', int.tryParse(umurC.text) ?? 0);
         box.write('pekerjaan', selectedPekerjaan.value);
 
-        // Memaksa halaman Profil utama memperbarui tampilannya secara realtime
-        if (Get.isRegistered<ProfilController>()) Get.find<ProfilController>().loadUserData();
+        // Memaksa halaman Profil utama memperbarui tampilannya
+        if (Get.isRegistered<ProfilController>()) {
+          Get.find<ProfilController>().loadUserData();
+        }
         
         Get.back();
-        Get.snackbar("Sukses", "Profil dasar berhasil disimpan!", backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar("Sukses", "Profil dasar berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
       } else {
-        // 🔥 Tambahan: Beri tahu jika errornya dari backend Flask
-        Get.snackbar("Gagal", "Gagal menyimpan. Kode: ${response.statusCode}", backgroundColor: Colors.orange, colorText: Colors.white);
+        // 🔥 PERBAIKAN 4: Ekstraksi pesan error dari backend JSON (jika Flask mengirim respons 'message')
+        String errorMessage = "Gagal menyimpan. Kode: ${response.statusCode}";
+        try {
+          var errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'];
+          }
+        } catch (_) {}
+        
+        Get.snackbar("Gagal", errorMessage, backgroundColor: Colors.redAccent, colorText: Colors.white);
         print("Response body error: ${response.body}");
       }
     } catch (e) {
-      // 🔥 Memunculkan eror di terminal agar gampang dilacak
       print("Error Update Profil: $e"); 
-      Get.snackbar("Error", "Gagal terhubung ke server", backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar("Koneksi Gagal", "Sistem gagal terhubung ke backend. Pastikan server menyala.", backgroundColor: Colors.redAccent, colorText: Colors.white);
     } finally { 
       isLoading.value = false; 
     }

@@ -21,7 +21,7 @@
     <!-- 📲 KONFIGURASI APLIKASI (APPLICATION)                                     -->
     <!-- ========================================================================= -->
     <application
-        android:label="manual_capston"
+        android:label="Myoguard"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"> 

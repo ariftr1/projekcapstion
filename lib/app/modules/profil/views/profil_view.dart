@@ -16,7 +16,7 @@ class ProfilView extends GetView<ProfilController> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF2052D9), Color(0xFF6A11CB)], 
+            colors: [Color(0xFF2052D9), Color(0xFF6A11CB)],
           ),
         ),
         child: SafeArea(
@@ -39,26 +39,26 @@ class ProfilView extends GetView<ProfilController> {
                         ),
                         child: Center(
                           child: Obx(() => Text(
-                            controller.userInitials.value,
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
-                          )),
+                                controller.userInitials.value,
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                              )),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Obx(() => Text(
-                        controller.userName.value, 
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                      )),
+                            controller.userName.value,
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                          )),
                       const SizedBox(height: 4),
                       Obx(() => Text(
-                        controller.userEmail.value, 
-                        style: const TextStyle(fontSize: 14, color: Colors.white70),
-                      )),
+                            controller.userEmail.value,
+                            style: const TextStyle(fontSize: 14, color: Colors.white70),
+                          )),
                     ],
                   ),
                 ),
 
-                // 2. BOX RINGKASAN DATA MEDIS
+                // 2. BOX RINGKASAN DATA MEDIS (SUDAH DIPERBAIKI)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -73,9 +73,17 @@ class ProfilView extends GetView<ProfilController> {
                       children: [
                         Obx(() => _buildStatItem(title: "Umur", value: controller.umur.value)),
                         Container(width: 1.5, height: 40, color: Colors.white.withAlpha(50)),
-                        Obx(() => _buildStatItem(title: "SPH", value: controller.sph.value)),
+                        Obx(() => _buildStatItem(
+                            title: "SPH", 
+                            value: controller.sph.value, 
+                            showInfo: true, 
+                            desc: "SPH (Sphere) menunjukkan kekuatan lensa untuk koreksi rabun jauh (minus) atau rabun dekat (plus).")),
                         Container(width: 1.5, height: 40, color: Colors.white.withAlpha(50)),
-                        Obx(() => _buildStatItem(title: "CYL", value: controller.cyl.value)),
+                        Obx(() => _buildStatItem(
+                            title: "CYL", 
+                            value: controller.cyl.value, 
+                            showInfo: true, 
+                            desc: "CYL (Cylinder) menunjukkan kekuatan lensa tambahan untuk mengoreksi mata silinder (astigmatisme).")),
                       ],
                     ),
                   ),
@@ -83,93 +91,21 @@ class ProfilView extends GetView<ProfilController> {
 
                 const SizedBox(height: 30),
 
-                // 3. MENU PENGATURAN & PROFIL (3 Halaman Baru)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Pengaturan & Profil', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(20),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildMenuItem(
-                              icon: Icons.person_outline_rounded,
-                              title: 'Edit Profil Dasar',
-                              onTap: () => Get.toNamed(Routes.EDIT_PROFIL),
-                              showDivider: true,
-                            ),
-                            _buildMenuItem(
-                              icon: Icons.medical_services_outlined,
-                              title: 'Riwayat Medis Mata',
-                              onTap: () => Get.toNamed(Routes.RIWAYAT_MEDIS),
-                              showDivider: true,
-                            ),
-                            _buildMenuItem(
-                              icon: Icons.manage_accounts_outlined,
-                              title: 'Tentang Akun & Sandi',
-                              onTap: () => Get.toNamed(Routes.TENTANG_AKUN),
-                              showDivider: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // 3. MENU PENGATURAN
+                _buildMenuSection("Pengaturan & Profil", [
+                  _buildMenuItem(Icons.person_outline_rounded, 'Edit Profil', () => Get.toNamed(Routes.EDIT_PROFIL), true),
+                  _buildMenuItem(Icons.medical_services_outlined, 'Riwayat Medis Mata', () => Get.toNamed(Routes.RIWAYAT_MEDIS), true),
+                  _buildMenuItem(Icons.manage_accounts_outlined, 'Tentang Akun & Sandi', () => Get.toNamed(Routes.TENTANG_AKUN), false),
+                ]),
 
-                const SizedBox(height: 24),
+                // 4. MENU BANTUAN
+                _buildMenuSection("Bantuan & Informasi", [
+                  _buildMenuItem(Icons.help_outline_rounded, 'FAQ', () => Get.toNamed(Routes.FAQ), true),
+                  _buildMenuItem(Icons.shield_outlined, 'Kebijakan Privasi', () => Get.toNamed(Routes.PRIVACY_POLICY), true),
+                  _buildMenuItem(Icons.info_outline_rounded, 'Tentang Aplikasi', () => Get.toNamed(Routes.ABOUT), false),
+                ]),
 
-                // 4. MENU BANTUAN & INFORMASI (FAQ, Privasi, About)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Bantuan & Informasi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(20),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildMenuItem(
-                              icon: Icons.help_outline_rounded,
-                              title: 'FAQ',
-                              onTap: () => Get.toNamed(Routes.FAQ),
-                              showDivider: true,
-                            ),
-                            _buildMenuItem(
-                              icon: Icons.shield_outlined,
-                              title: 'Kebijakan Privasi',
-                              onTap: () => Get.toNamed(Routes.PRIVACY_POLICY),
-                              showDivider: true,
-                            ),
-                            _buildMenuItem(
-                              icon: Icons.info_outline_rounded,
-                              title: 'Tentang Aplikasi',
-                              onTap: () => Get.toNamed(Routes.ABOUT),
-                              showDivider: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 5. TOMBOL LOGOUT
+                // 5. LOGOUT
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -178,83 +114,81 @@ class ProfilView extends GetView<ProfilController> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.redAccent, width: 1.5),
                     ),
-                    child: _buildMenuItem(
-                      icon: Icons.logout_rounded,
-                      title: 'Keluar Aplikasi',
-                      titleColor: Colors.redAccent,
-                      iconColor: Colors.redAccent,
-                      onTap: () => controller.logout(),
-                      showDivider: false,
-                    ),
+                    child: _buildMenuItem(Icons.logout_rounded, 'Keluar Aplikasi', () => controller.logout(), false, Colors.redAccent, Colors.redAccent),
                   ),
                 ),
-                
-                const SizedBox(height: 40),
 
-// 6. LOGO & VERSI APLIKASI
-              Column(
-                children: [
-                  // 🔥 LOGO MYOGUARD BERGAYA APP ICON
-                  Container(
-                    width: 70, // Diperbesar sedikit dari 60 ke 70 agar logo jelas
-                    height: 70,
-                    padding: const EdgeInsets.all(10), // Ruang napas agar logo tidak menabrak bingkai
-                    decoration: BoxDecoration(
-                      color: Colors.white, // Bantal putih solid agar warna logo sangat kontras & jelas
-                      borderRadius: BorderRadius.circular(18), // Sudut membulat estetik
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        )
-                      ],
+                const SizedBox(height: 40),
+                
+                // 6. LOGO & VERSI
+                Column(
+                  children: [
+                    Container(
+                      width: 70, height: 70,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Image.asset('assets/images/logo1.png', fit: BoxFit.contain),
                     ),
-                    child: Image.asset(
-                      'assets/images/logo1.png', // Memanggil logo yang sama dengan di Login
-                      fit: BoxFit.contain, 
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'MyoGuard App',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Versi 1.0.0',
-                    style: TextStyle(fontSize: 12, color: Colors.white70),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 100), // Spasi Floating Navbar
-            ],
+                    const SizedBox(height: 12),
+                    const Text('MyoGuard App', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Text('Versi 1.0.0', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                  ],
+                ),
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildStatItem({required String title, required String value}) {
+  // WIDGET STATISTIK MEDIS (DI SINI PERBAIKANNYA)
+  Widget _buildStatItem({required String title, required String value, bool showInfo = false, String? desc}) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70)),
+            if (showInfo)
+              GestureDetector(
+                onTap: () => Get.defaultDialog(title: title, middleText: desc!, contentPadding: const EdgeInsets.all(20)),
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: Icon(Icons.info_outline, size: 14, color: Colors.white),
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 8),
         Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
       ],
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    required bool showDivider,
-    Color titleColor = Colors.white,
-    Color iconColor = Colors.white,
-  }) {
+  Widget _buildMenuSection(String title, List<Widget> children) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(color: Colors.white.withAlpha(20), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white, width: 1.5)),
+            child: Column(children: children),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap, bool showDivider, [Color titleColor = Colors.white, Color iconColor = Colors.white]) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -266,18 +200,12 @@ class ProfilView extends GetView<ProfilController> {
               children: [
                 Icon(icon, color: iconColor, size: 24),
                 const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title, 
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: titleColor),
-                  ),
-                ),
+                Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: titleColor))),
                 Icon(Icons.chevron_right_rounded, color: Colors.white.withAlpha(120), size: 20),
               ],
             ),
           ),
-          if (showDivider) 
-            Divider(color: Colors.white.withAlpha(40), height: 1, indent: 20, endIndent: 20),
+          if (showDivider) Divider(color: Colors.white.withAlpha(40), height: 1, indent: 20, endIndent: 20),
         ],
       ),
     );

@@ -30,9 +30,24 @@ class RiwayatMedisView extends GetView<RiwayatMedisController> {
                 ),
                 const SizedBox(height: 40),
                 
-                _buildField(hint: 'Spheris / Minus (SPH) contoh: -1.50', icon: Icons.remove_red_eye_outlined, controller: controller.sphC),
+                // --- BAGIAN YANG DIPERBAIKI ---
+                _buildFieldMedis(
+                  label: 'SPH',
+                  hint: 'Contoh: -1.50',
+                  icon: Icons.remove_red_eye_outlined,
+                  controller: controller.sphC,
+                  desc: 'SPH (Sphere) menunjukkan kekuatan lensa untuk koreksi rabun jauh (minus) atau rabun dekat (plus).'
+                ),
                 const SizedBox(height: 20),
-                _buildField(hint: 'Cylinder (CYL) contoh: -0.25', icon: Icons.blur_on_outlined, controller: controller.cylC),
+                _buildFieldMedis(
+                  label: 'CYL',
+                  hint: 'Contoh: -0.25',
+                  icon: Icons.blur_on_outlined,
+                  controller: controller.cylC,
+                  desc: 'CYL (Cylinder) menunjukkan kekuatan lensa tambahan untuk mengoreksi mata silinder (astigmatisme).'
+                ),
+                // ------------------------------
+                
                 const SizedBox(height: 30),
                 
                 // Toggle Switch Kacamata
@@ -43,20 +58,19 @@ class RiwayatMedisView extends GetView<RiwayatMedisController> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Menggunakan Kacamata?", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
-                      // Di bagian Switch pada RiwayatMedisView:
-                        Obx(() => Switch(
-                          value: controller.menggunakanKacamata.value,
-                          activeColor: Colors.white,
-                          activeTrackColor: Colors.green,
-                          onChanged: (val) => controller.toggleKacamata(val), // Memanggil fungsi controller
-                        )),
+                      Obx(() => Switch(
+                        value: controller.menggunakanKacamata.value,
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.green,
+                        onChanged: (val) => controller.toggleKacamata(val),
+                      )),
                     ],
                   ),
                 ),
                 
                 const SizedBox(height: 20),
                 
-                // Dropdown Range Waktu (Hanya muncul jika switch bernilai true / YA)
+                // Dropdown Range Waktu
                 Obx(() => controller.menggunakanKacamata.value
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,15 +122,36 @@ class RiwayatMedisView extends GetView<RiwayatMedisController> {
     );
   }
 
-  Widget _buildField({required String hint, required IconData icon, required TextEditingController controller}) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white, width: 1.5)),
-      child: TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.white70), prefixIcon: Icon(icon, color: Colors.white), border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15)),
-      ),
+  // --- WIDGET BARU YANG RAPI ---
+  Widget _buildFieldMedis({required String label, required String hint, required IconData icon, required TextEditingController controller, required String desc}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => Get.defaultDialog(
+                title: "Info $label", 
+                middleText: desc,
+                contentPadding: const EdgeInsets.all(20)
+              ),
+              child: const Icon(Icons.info_outline, size: 16, color: Colors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white, width: 1.5)),
+          child: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.white70), prefixIcon: Icon(icon, color: Colors.white), border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15)),
+          ),
+        ),
+      ],
     );
   }
 }

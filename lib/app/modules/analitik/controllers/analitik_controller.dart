@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
 
 class AnalitikController extends GetxController {
-  final String baseUrl = 'http://172.20.10.13:5000'; 
+  final String baseUrl = 'http:// 192.168.18.20:5000'; 
   final box = GetStorage(); 
 
   var isMingguan = true.obs;
